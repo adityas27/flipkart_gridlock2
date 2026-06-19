@@ -1,0 +1,37 @@
+# Python folders
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+.venv/
+
+# Environment Variables
+.env
+.env.local
+.env.*
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Build / Distribution
+build/
+dist/
+
+# Database
+*.db
+*.sqlite3
+
+# Temporary Files
+tmp/
+temp/

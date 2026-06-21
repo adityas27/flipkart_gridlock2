@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const navigation = [
-  { href: "/", label: "Overview", icon: ShieldCheck },
+  { href: "/overview", label: "Overview", icon: ShieldCheck },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/events", label: "Events", icon: CalendarClock },
   { href: "/predictor", label: "Predictor", icon: Gpu },

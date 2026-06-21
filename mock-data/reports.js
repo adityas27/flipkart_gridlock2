@@ -1,0 +1,32 @@
+export const citizenReports = [
+  {
+    id: "RPT-001",
+    title: "Accident at MG Road",
+    status: "Pending Verification",
+    severity: "High",
+    location: "MG Road Junction",
+    submittedAt: "21 Jun 2026, 10:30 AM",
+    affectedLanes: 2,
+    progress: 2,
+  },
+  {
+    id: "RPT-002",
+    title: "Vehicle Breakdown",
+    status: "Active",
+    severity: "Moderate",
+    location: "Western Express Highway",
+    submittedAt: "20 Jun 2026, 05:15 PM",
+    affectedLanes: 1,
+    progress: 4,
+  },
+  {
+    id: "RPT-003",
+    title: "Spontaneous Protest",
+    status: "Resolved",
+    severity: "Critical",
+    location: "Azad Maidan",
+    submittedAt: "18 Jun 2026, 02:10 PM",
+    affectedLanes: 4,
+    progress: 5,
+  },
+];

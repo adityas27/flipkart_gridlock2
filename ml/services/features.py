@@ -40,7 +40,7 @@ def create_feature_row(payload, hotspot_scores: dict) -> pd.DataFrame:
         # Frequency mappings & placeholders
         "cause_freq": 100,
         "zone_freq": 100,
-        "junction_freq": hotspot_scores.get(payload.junction, 10),
+        "junction_freq": hotspot_scores.get(payload.junction, 1),
         "station_freq": 100,
         "description_len": 0,
         "description_words": 0,

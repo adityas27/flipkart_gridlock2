@@ -38,10 +38,9 @@ def predict(payload: EventPredictionRequest):
 
     severity_score = round(severity_prob * 100, 2)
     traffic_score = traffic["traffic_score"]
-    hotspot_score = resources["hotspot_scores"].get(payload.junction, 20)
-    junction_score = resources["junction_rank"].get(payload.junction, 1.0) * 100
+    hotspot_score = resources["hotspot_scores"].get(payload.junction, 20) * 1000
+    junction_score = resources["junction_rank"].get(payload.junction, 1.0) * 10
     closure_score = 100 if payload.requires_road_closure else 20
-
     risk_score = compute_risk_score(
         severity_score, hotspot_score, junction_score, closure_score, traffic_score
     )

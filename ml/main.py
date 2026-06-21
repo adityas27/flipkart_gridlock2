@@ -8,7 +8,7 @@ from services import map
 from services.features import create_feature_row
 from services.resources import recommend_resources
 from services.scoring import compute_risk_score, get_risk_category
-# import google.generativeai as genai
+
 resources = {}
 
 
@@ -22,9 +22,6 @@ async def lifespan(app: FastAPI):
     yield
     resources.clear()
 
-# genai.configure(
-#     api_key=GEMINI_API_KEY
-# )
 
 app = FastAPI(title="Event Intelligence API", lifespan=lifespan)
 

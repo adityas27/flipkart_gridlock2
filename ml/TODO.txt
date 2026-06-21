@@ -1,0 +1,7 @@
+1. Improve Scoring System
+2. Make map logic a bit more relevant and complex
+3. Make resource allocation responses more relevant to reallife add LLM reasoning layer (Gemma for reasoning)
+4. Automatic Location capture, (nearby junctions, zone, corridor) detailed discussion in meet
+5. Plan other resources other than mentioned (Ambulance, fire truck, etc)
+6. Resource allocation to be made more reallstically possible
+

@@ -44,3 +44,7 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+## ML folder
+__pycache__
+ml/data.csv

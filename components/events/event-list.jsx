@@ -87,7 +87,6 @@ export function EventList() {
   return (
     <div className="space-y-6">
       <SectionHeader
-        eyebrow="Operations registry"
         title="Event management"
         description="Review planned and live disruptions, refine deployment assumptions, and keep traffic control metadata organized."
         actions={

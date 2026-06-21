@@ -5,7 +5,7 @@ import { startTransition, useActionState, useState } from "react";
 
 import { EVENT_STATUSES, EVENT_TYPES } from "@/types";
 import { getDurationHours } from "@/lib/utils";
-import { createEvent } from "@/actions/event";
+import { createEvent } from "@/actions/events";
 
 import { SectionHeader } from "@/components/shared/section-header";
 
@@ -359,9 +359,26 @@ export function EventForm({
             <CardContent className="space-y-3 text-sm text-slate-400">
               {submissionState ? (
                 <>
-                  <p className={submissionState.success ? "text-emerald-300" : "text-rose-300"}>
-                    {submissionState.success ? "Event saved to Supabase." : submissionState.error}
+                  <p className={submissionState.success ? "text-emerald-300 font-semibold" : "text-rose-300"}>
+                    {submissionState.success ? "Event saved and predictions generated." : submissionState.error}
                   </p>
+                  {submissionState.success && submissionState.prediction && (
+                    <div className="mt-4 rounded-xl border border-white/10 bg-white/2 p-4 space-y-2 text-white">
+                      <p className="font-semibold text-sky-300">Model Predictions:</p>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>Risk Category: <span className="font-medium text-amber-300">{submissionState.prediction.riskCategory}</span></div>
+                        <div>Risk Score: <span className="font-medium text-amber-300">{submissionState.prediction.riskScore}</span></div>
+                        <div>Severity Score: <span className="font-medium">{submissionState.prediction.severityScore}</span></div>
+                        <div>Traffic Score: <span className="font-medium">{submissionState.prediction.trafficScore}</span></div>
+                      </div>
+                      <p className="font-semibold text-sky-300 pt-2">Recommended Resources:</p>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div>Officers: <span className="font-medium text-emerald-300">{submissionState.prediction.officers}</span></div>
+                        <div>Barricades: <span className="font-medium text-emerald-300">{submissionState.prediction.barricades}</span></div>
+                        <div>Tow Vehicles: <span className="font-medium text-emerald-300">{submissionState.prediction.towVehicles}</span></div>
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <p>

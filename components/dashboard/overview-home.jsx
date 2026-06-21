@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, ShieldCheck, Siren, TrafficCone } from "lucide-react";
-import { getEvents, getRecentEvents } from "@/services/events";
+import { getOverviewData } from "@/services/dashboard";
 import { formatDateTime, formatNumber } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,13 +13,14 @@ import {
 import { SectionHeader } from "@/components/shared/section-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 
-export function OverviewHome() {
-  const events = getEvents();
-  const activeCount = events.filter((event) => event.status === "Active").length;
-  const criticalCount = events.filter((event) => event.severity === "Critical").length;
-  const totalOfficers = events.reduce((sum, event) => sum + event.officersRequired, 0);
-  const recentEvents = getRecentEvents().slice(0, 4);
-  const priorityEvent = events[0];
+export async function OverviewHome() {
+  const {
+    recentEvents,
+    activeCount,
+    criticalCount,
+    totalOfficers,
+    priorityEvent,
+  } = await getOverviewData();
 
   return (
     <div className="space-y-6">
@@ -40,30 +41,42 @@ export function OverviewHome() {
       />
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <Card>
-          <CardHeader>
-            <CardDescription>Priority alert</CardDescription>
-            <CardTitle className="flex items-center gap-3 text-2xl">
-              <Siren className="h-6 w-6 text-[#EF4444]" />
-              {priorityEvent.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="flex flex-wrap items-center gap-3">
-              <StatusBadge status={priorityEvent.status} />
-              <StatusBadge status={priorityEvent.severity} />
-              <span className="text-sm text-[#A1A7B3]">{priorityEvent.location}</span>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <MiniStat label="Delay" value={`${priorityEvent.delayMinutes} min`} icon={AlertTriangle} />
-              <MiniStat label="Officers" value={formatNumber(priorityEvent.officersRequired)} icon={ShieldCheck} />
-              <MiniStat label="Barricades" value={formatNumber(priorityEvent.barricadesRequired)} icon={TrafficCone} />
-            </div>
-            <div className="rounded-2xl border border-[#343A40] bg-[#1C1F23] p-4 text-sm leading-6 text-[#A1A7B3]">
-              Congestion score is {priorityEvent.congestionScore} with an estimated impact radius of {priorityEvent.impactRadius}. Use this event as the current reference point for deployment and diversion planning.
-            </div>
-          </CardContent>
-        </Card>
+        {priorityEvent ? (
+          <Card>
+            <CardHeader>
+              <CardDescription>Priority alert</CardDescription>
+              <CardTitle className="flex items-center gap-3 text-2xl">
+                <Siren className="h-6 w-6 text-[#EF4444]" />
+                {priorityEvent.name}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="flex flex-wrap items-center gap-3">
+                <StatusBadge status={priorityEvent.status} />
+                <StatusBadge status={priorityEvent.severity} />
+                <span className="text-sm text-[#A1A7B3]">{priorityEvent.location}</span>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <MiniStat label="Delay" value={`${priorityEvent.delayMinutes} min`} icon={AlertTriangle} />
+                <MiniStat label="Officers" value={formatNumber(priorityEvent.officersRequired)} icon={ShieldCheck} />
+                <MiniStat label="Barricades" value={formatNumber(priorityEvent.barricadesRequired)} icon={TrafficCone} />
+              </div>
+              <div className="rounded-2xl border border-[#343A40] bg-[#1C1F23] p-4 text-sm leading-6 text-[#A1A7B3]">
+                Congestion score is {priorityEvent.congestionScore} with an estimated impact radius of {priorityEvent.impactRadius}. Use this event as the current reference point for deployment and diversion planning.
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">Priority alert</CardTitle>
+              <CardDescription>No event records are available yet.</CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm leading-6 text-[#A1A7B3]">
+              Create or sync events into the database to populate operational overview metrics.
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>

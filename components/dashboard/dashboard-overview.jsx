@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle, Shield, Sparkles, TrafficCone, Waypoints } from "lucide-react";
-import { dashboardMetrics, eventTypeSeries, severitySeries, zoneImpactSeries } from "@/mock-data/events";
-import { getRecentEvents } from "@/services/events";
+import { getDashboardData } from "@/services/dashboard";
 import { formatDateTime, formatNumber } from "@/lib/utils";
 import { MetricCard } from "@/components/shared/metric-card";
 import { SectionHeader } from "@/components/shared/section-header";
@@ -18,8 +17,14 @@ const metricIcons = {
   "Prediction Accuracy": Sparkles,
 };
 
-export function DashboardOverview({ compact = false }) {
-  const recentEvents = getRecentEvents();
+export async function DashboardOverview({ compact = false }) {
+  const {
+    dashboardMetrics,
+    eventTypeSeries,
+    severitySeries,
+    zoneImpactSeries,
+    recentEvents,
+  } = await getDashboardData();
 
   return (
     <div className="space-y-6">

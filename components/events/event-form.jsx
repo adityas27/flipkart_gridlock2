@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 
 import { EVENT_STATUSES, EVENT_TYPES } from "@/types";
 import { getDurationHours } from "@/lib/utils";
+import { createEvent } from "@/actions/event";
 
 import { SectionHeader } from "@/components/shared/section-header";
 
@@ -51,8 +52,10 @@ export function EventForm({
       : defaultState
   );
 
-  const [submissionState, setSubmissionState] =
-    useState(null);
+  const [submissionState, formAction, pending] = useActionState(
+    createEvent,
+    null
+  );
 
   function updateField(field, value) {
     setFormState((current) => ({
@@ -63,23 +66,10 @@ export function EventForm({
 
   function handleSubmit(event) {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
 
     startTransition(() => {
-      setSubmissionState({
-        message:
-          mode === "edit"
-            ? "Mock update prepared for review."
-            : "Mock event created for frontend preview.",
-
-        payload: {
-          ...formState,
-
-          durationHours: getDurationHours(
-            formState.startTime,
-            formState.endTime
-          ),
-        },
-      });
+      formAction(formData);
     });
   }
 
@@ -117,8 +107,7 @@ export function EventForm({
             </CardTitle>
 
             <CardDescription>
-              Use mock submission flow until backend
-              APIs are approved.
+              Submit this form to store the event in Supabase through Prisma.
             </CardDescription>
           </CardHeader>
 
@@ -129,6 +118,7 @@ export function EventForm({
             >
               <Field label="Event Name">
                 <Input
+                  name="eventName"
                   value={formState.name}
                   onChange={(event) =>
                     updateField(
@@ -162,10 +152,12 @@ export function EventForm({
                     ))}
                   </SelectContent>
                 </Select>
+                <input type="hidden" name="eventType" value={formState.type} />
               </Field>
 
               <Field label="Event Cause">
                 <Input
+                  name="eventCause"
                   value={formState.cause}
                   onChange={(event) =>
                     updateField(
@@ -179,6 +171,7 @@ export function EventForm({
 
               <Field label="Crowd Size">
                 <Input
+                  name="crowdSize"
                   type="number"
                   min="0"
                   value={formState.crowdSize}
@@ -197,6 +190,7 @@ export function EventForm({
                 className="md:col-span-2"
               >
                 <Input
+                  name="location"
                   value={formState.location}
                   onChange={(event) =>
                     updateField(
@@ -210,6 +204,7 @@ export function EventForm({
 
               <Field label="Latitude">
                 <Input
+                  name="latitude"
                   value={formState.latitude}
                   onChange={(event) =>
                     updateField(
@@ -222,6 +217,7 @@ export function EventForm({
 
               <Field label="Longitude">
                 <Input
+                  name="longitude"
                   value={formState.longitude}
                   onChange={(event) =>
                     updateField(
@@ -234,6 +230,7 @@ export function EventForm({
 
               <Field label="Start Time">
                 <Input
+                  name="startTime"
                   type="datetime-local"
                   value={formState.startTime}
                   onChange={(event) =>
@@ -247,6 +244,7 @@ export function EventForm({
 
               <Field label="End Time">
                 <Input
+                  name="endTime"
                   type="datetime-local"
                   value={formState.endTime}
                   onChange={(event) =>
@@ -282,13 +280,14 @@ export function EventForm({
                     )}
                   </SelectContent>
                 </Select>
+                <input type="hidden" name="status" value={formState.status} />
               </Field>
 
               <div className="flex flex-wrap gap-3 pt-2 md:col-span-2">
-                <Button type="submit">
-                  {mode === "edit"
-                    ? "Save mock changes"
-                    : "Generate mock event"}
+                <Button type="submit" disabled={pending}>
+                  {pending ? "Saving..." : mode === "edit"
+                    ? "Save event"
+                    : "Create event"}
                 </Button>
 
                 <Button
@@ -360,23 +359,13 @@ export function EventForm({
             <CardContent className="space-y-3 text-sm text-slate-400">
               {submissionState ? (
                 <>
-                  <p className="text-emerald-300">
-                    {submissionState.message}
+                  <p className={submissionState.success ? "text-emerald-300" : "text-rose-300"}>
+                    {submissionState.success ? "Event saved to Supabase." : submissionState.error}
                   </p>
-
-                  <pre className="overflow-x-auto rounded-2xl bg-slate-900/80 p-4 text-xs text-slate-300">
-                    {JSON.stringify(
-                      submissionState.payload,
-                      null,
-                      2
-                    )}
-                  </pre>
                 </>
               ) : (
                 <p>
-                  Submit the form to see the
-                  mock payload that would later
-                  be sent to the backend.
+                  Submit the form to store the event in the database.
                 </p>
               )}
             </CardContent>

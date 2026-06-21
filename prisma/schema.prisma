@@ -17,6 +17,25 @@ enum Role {
   OFFICER
 }
 
+enum EventType {
+  FESTIVAL
+  CONCERT
+  SPORTS
+  POLITICAL
+  RELIGIOUS
+  CORPORATE
+  EDUCATIONAL
+  OTHER
+}
+
+enum EventStatus {
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+
 model User {
   id        String   @id @default(cuid())
   clerkId   String   @unique
@@ -27,4 +46,24 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Event {
+  id          String       @id @default(cuid())
+  eventName   String
+  eventType   EventType
+  eventCause  String?
+  crowdSize   Int          @default(0)
+  location    String
+  latitude    Decimal      @db.Decimal(10, 7)
+  longitude   Decimal      @db.Decimal(10, 7)
+  startTime   DateTime
+  endTime     DateTime
+  status      EventStatus  @default(SCHEDULED)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([eventType])
+  @@index([status])
+  @@index([startTime])
 }

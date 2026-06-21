@@ -8,7 +8,7 @@ from services import map
 from services.features import create_feature_row
 from services.resources import recommend_resources
 from services.scoring import compute_risk_score, get_risk_category
-
+import google.generativeai as genai
 resources = {}
 
 
@@ -22,6 +22,9 @@ async def lifespan(app: FastAPI):
     yield
     resources.clear()
 
+genai.configure(
+    api_key=GEMINI_API_KEY
+)
 
 app = FastAPI(title="Event Intelligence API", lifespan=lifespan)
 
@@ -38,7 +41,7 @@ def predict(payload: EventPredictionRequest):
 
     severity_score = round(severity_prob * 100, 2)
     traffic_score = traffic["traffic_score"]
-    hotspot_score = resources["hotspot_scores"].get(payload.junction, 20) * 1000
+    hotspot_score = resources["hotspot_scores"].get(payload.junction, .02) * 1000
     junction_score = resources["junction_rank"].get(payload.junction, 1.0) * 10
     closure_score = 100 if payload.requires_road_closure else 20
     risk_score = compute_risk_score(

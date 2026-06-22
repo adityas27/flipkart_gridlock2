@@ -1,3 +1,5 @@
+import Script from "next/script";
+
 export function ThemeScript() {
   const script = `
     (() => {
@@ -9,5 +11,9 @@ export function ThemeScript() {
     })();
   `;
 
-  return <script dangerouslySetInnerHTML={{ __html: script }} />;
+  return (
+    <Script id="gridlock-theme-script" strategy="beforeInteractive">
+      {script}
+    </Script>
+  );
 }

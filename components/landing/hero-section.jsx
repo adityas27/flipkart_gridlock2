@@ -122,7 +122,7 @@ export async function HeroSection() {
                   </Button>
 
                   <Button variant="secondary" size="lg" asChild>
-                    <Link href="/dashboard">Explore Platform</Link>
+                    <Link href="/my-reports">My Reports</Link>
                   </Button>
                 </div>
 

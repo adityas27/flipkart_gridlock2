@@ -81,16 +81,6 @@ export function Sidebar({ children }) {
                   <h1 className="text-lg font-semibold text-white">Event-driven congestion management</h1>
                 </div>
               </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="hidden items-center gap-2 rounded-xl border border-[#343A40] bg-[#1C1F23] px-4 py-2 text-sm text-[#D1D5DB] md:flex">
-                  <Bell className="h-4 w-4 text-[#F59E0B]" />
-                  3 alerts need review
-                </div>
-                <Button asChild>
-                  <Link href="/events/create">Create Event</Link>
-                </Button>
-              </div>
             </div>
           </header>
 

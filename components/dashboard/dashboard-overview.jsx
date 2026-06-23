@@ -44,10 +44,12 @@ export async function DashboardOverview({ compact = false }) {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        {dashboardMetrics.map((metric) => (
-          <MetricCard key={metric.id} label={metric.label} value={metric.value} trend={metric.trend} icon={metricIcons[metric.label]} />
-        ))}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {dashboardMetrics
+          .filter((metric) => metric.label !== "Prediction Accuracy")
+          .map((metric) => (
+            <MetricCard key={metric.id} label={metric.label} value={metric.value} trend={metric.trend} icon={metricIcons[metric.label]} />
+          ))}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">

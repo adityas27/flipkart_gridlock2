@@ -16,7 +16,7 @@ function mapRiskCategoryToConfidence(category) {
   if (!category) return "N/A";
   const cat = category.toUpperCase();
   if (cat === "CRITICAL" || cat === "HIGH") return "High";
-  if (cat === "MEDIUM") return "Medium";
+  if (cat === "MEDIUM" || cat === "MODERATE") return "Medium";
   if (cat === "LOW") return "Low";
   return "N/A";
 }

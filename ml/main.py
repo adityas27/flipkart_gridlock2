@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 import os
 import joblib
 from catboost import CatBoostClassifier
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from schemas.req import EventPredictionRequest
 from schemas.res import PredictionResponse
 from services import map

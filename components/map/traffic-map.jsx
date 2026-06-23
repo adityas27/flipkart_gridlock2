@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Circle, LayersControl, MapContainer, Marker, Popup, Polyline, TileLayer } from "react-leaflet";
 import L from "leaflet";
-import { mapEvents, congestionZones, mapRoutes } from "@/mock-data/map";
+import { getTrafficMapData } from "@/actions/map";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/shared/status-badge";
 
@@ -11,6 +12,7 @@ const severityColors = {
   High: "#f59e0b",
   Moderate: "#38bdf8",
   Low: "#34d399",
+  "N/A": "#64748b",
 };
 
 function markerIcon(severity) {
@@ -23,6 +25,32 @@ function markerIcon(severity) {
 }
 
 export default function TrafficMap() {
+  const [mapData, setMapData] = useState({
+    mapEvents: [],
+    congestionZones: [],
+    mapRoutes: [],
+  });
+
+  useEffect(() => {
+    let active = true;
+    async function loadData() {
+      try {
+        const res = await getTrafficMapData();
+        if (active) {
+          setMapData(res ?? { mapEvents: [], congestionZones: [], mapRoutes: [] });
+        }
+      } catch (error) {
+        console.error("Failed to load map data:", error);
+      }
+    }
+    loadData();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const { mapEvents, congestionZones, mapRoutes } = mapData;
+
   return (
     <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
       <Card className="overflow-hidden">

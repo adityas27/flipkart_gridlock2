@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { getDiversionRoutes } from "@/services/diversions";
 
@@ -26,13 +26,34 @@ import {
 } from "@/components/ui/sheet";
 
 export function DiversionPlanner() {
-  const routes = getDiversionRoutes();
+  const [routes, setRoutes] = useState([]);
 
   const [selectedRoute, setSelectedRoute] =
-    useState(routes[0]);
+    useState(null);
 
   const [drawerOpen, setDrawerOpen] =
     useState(false);
+
+  useEffect(() => {
+    let active = true;
+    async function loadRoutes() {
+      try {
+        const data = await getDiversionRoutes();
+        if (active) {
+          setRoutes(data ?? []);
+          if (data && data.length > 0) {
+            setSelectedRoute(data[0]);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    loadRoutes();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function openRoute(route) {
     setSelectedRoute(route);

@@ -38,8 +38,8 @@ export function DataTable({
         </TableHeader>
 
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.id}>
+          {rows.map((row, index) => (
+            <TableRow key={row.id ?? row.key ?? index}>
               {columns.map((column) => (
                 <TableCell key={`${row.id}-${column.key}`}>
                   {column.render

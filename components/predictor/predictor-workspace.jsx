@@ -1,9 +1,9 @@
 "use client";
 
-import { startTransition, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { predictorDefaults } from "@/mock-data/predictions";
-import { generatePrediction } from "@/services/predictions";
+import { predictorDefaults, samplePrediction } from "@/mock-data/predictions";
+import { generatePredictionAction } from "@/actions/predictor";
 import { EVENT_TYPES } from "@/types";
 
 import { Button } from "@/components/ui/button";
@@ -50,11 +50,23 @@ export function PredictorWorkspace() {
     useState(predictorDefaults);
 
   const [prediction, setPrediction] =
-    useState(
-      generatePrediction(
-        predictorDefaults
-      )
-    );
+    useState(samplePrediction);
+
+  const [isPending, setIsPending] = useState(false);
+
+  useEffect(() => {
+    setIsPending(true);
+    generatePredictionAction(predictorDefaults)
+      .then((res) => {
+        setPrediction(res);
+      })
+      .catch((err) => {
+        console.error(err);
+      })
+      .finally(() => {
+        setIsPending(false);
+      });
+  }, []);
 
   function updateField(field, value) {
     setFormData((current) => ({
@@ -65,12 +77,18 @@ export function PredictorWorkspace() {
 
   function handlePredict(event) {
     event.preventDefault();
+    setIsPending(true);
 
-    startTransition(() => {
-      setPrediction(
-        generatePrediction(formData)
-      );
-    });
+    generatePredictionAction(formData)
+      .then((res) => {
+        setPrediction(res);
+      })
+      .catch((err) => {
+        console.error(err);
+      })
+      .finally(() => {
+        setIsPending(false);
+      });
   }
 
   return (

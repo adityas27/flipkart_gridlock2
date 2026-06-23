@@ -65,21 +65,46 @@ function buildSyntheticTimeline(event, prediction) {
 
 function mapDbEventToUiEvent(event) {
   const prediction = event.prediction ?? null;
-  const score = Math.round(
-    prediction?.riskScore ??
-      prediction?.severityScore ??
-      clamp(event.crowdSize / 220, 24, 78)
-  );
+
+  if (!prediction) {
+    return {
+      id: event.id,
+      name: event.eventName,
+      type:
+        EVENT_TYPE_LABELS[event.eventType] ??
+        "Emergency Gathering",
+      cause:
+        event.eventCause ??
+        "General disruption",
+      crowdSize: event.crowdSize,
+      location: event.location,
+      zone: inferZoneFromLocation(event.location),
+      latitude: Number(event.latitude),
+      longitude: Number(event.longitude),
+      startTime: event.startTime.toISOString(),
+      endTime: event.endTime.toISOString(),
+      status:
+        EVENT_STATUS_LABELS[event.status] ??
+        "Scheduled",
+      severity: "N/A",
+      congestionScore: 0,
+      delayMinutes: 0,
+      impactRadius: "N/A",
+      confidence: 0,
+      officersRequired: 0,
+      barricadesRequired: 0,
+      marshalsRequired: 0,
+      towVehicles: 0,
+      roadClosure: "N/A",
+      timeline: [],
+    };
+  }
+
+  const score = Math.round(prediction.riskScore ?? prediction.severityScore ?? 0);
   const severity = getSeverityFromScore(score);
-  const officersRequired =
-    prediction?.officers ??
-    Math.max(6, Math.round(score * 0.8));
-  const barricadesRequired =
-    prediction?.barricades ??
-    Math.max(2, Math.round(score * 0.45));
-  const towVehicles =
-    prediction?.towVehicles ??
-    Math.max(0, Math.round(score * 0.05));
+  const officersRequired = prediction.officers ?? 0;
+  const barricadesRequired = prediction.barricades ?? 0;
+  const towVehicles = prediction.towVehicles ?? 0;
 
   return {
     id: event.id,
@@ -109,7 +134,7 @@ function mapDbEventToUiEvent(event) {
     impactRadius: `${(score / 24).toFixed(1)} km`,
     confidence: clamp(
       Math.round(
-        prediction?.severityScore ?? score
+        prediction.severityScore ?? score
       ),
       70,
       97
@@ -122,7 +147,7 @@ function mapDbEventToUiEvent(event) {
     ),
     towVehicles,
     roadClosure:
-      prediction?.closureScore >= 100
+      prediction.closureScore >= 100
         ? "Primary corridor closure"
         : "Managed traffic flow",
     timeline: buildSyntheticTimeline(
@@ -272,6 +297,15 @@ function buildDashboardMetrics(events) {
   const totalOfficers = events.reduce((sum, event) => sum + (event.officersRequired || 0), 0);
   const totalBarricades = events.reduce((sum, event) => sum + (event.barricadesRequired || 0), 0);
 
+  const eventsWithConfidence = events.filter((e) => e.confidence > 0);
+  const avgAccuracy = eventsWithConfidence.length > 0
+    ? Math.round(eventsWithConfidence.reduce((sum, e) => sum + e.confidence, 0) / eventsWithConfidence.length)
+    : 0;
+  const accuracyValue = avgAccuracy > 0 ? `${avgAccuracy}%` : "N/A";
+  const accuracyTrend = avgAccuracy > 0 
+    ? `Avg confidence for ${eventsWithConfidence.length} predictions` 
+    : "No prediction data available";
+
   return [
     {
       id: "active-events",
@@ -300,8 +334,8 @@ function buildDashboardMetrics(events) {
     {
       id: "accuracy",
       label: "Prediction Accuracy",
-      value: "NA",
-      trend: "Not available from backend",
+      value: accuracyValue,
+      trend: accuracyTrend,
     },
   ];
 }

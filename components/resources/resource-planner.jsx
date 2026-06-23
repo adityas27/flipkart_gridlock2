@@ -4,9 +4,10 @@ import { MetricCard } from "@/components/shared/metric-card";
 import { DataTable } from "@/components/shared/data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CoordinatedDispatcher } from "@/components/resources/coordinated-dispatcher";
 
-export function ResourcePlanner() {
-  const plan = getResourcePlan();
+export async function ResourcePlanner() {
+  const plan = await getResourcePlan();
   const summaryCards = [
     { label: "Officers Required", value: plan.summary.officersRequired, trend: `${plan.summary.utilization} utilization` },
     { label: "Traffic Marshals", value: plan.summary.trafficMarshals, trend: `${plan.summary.readiness} readiness` },
@@ -48,6 +49,8 @@ export function ResourcePlanner() {
           />
         </CardContent>
       </Card>
+
+      <CoordinatedDispatcher initialTable={plan.table} />
 
       <Card>
         <CardHeader>

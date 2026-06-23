@@ -111,7 +111,7 @@ export async function createEvent(stateOrFormData, formData) {
 
     try {
       // 4. Send request to FastAPI model
-      const modelRes = await fetch('  ', {
+      const modelRes = await fetch(process.env.FASTAPI_URL || 'http://localhost:8000/predict', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -154,6 +154,11 @@ export async function createEvent(stateOrFormData, formData) {
           officers: Math.max(5, Math.round(score * 0.8)),
           barricades: Math.max(2, Math.round(score * 0.5)),
           tow_vehicles: Math.max(0, Math.round(score * 0.05)),
+          diversion_strategy: {
+            barricade_placements: ["Deploy around main intersection."],
+            emergency_corridors: ["Keep left lane clear."],
+            transit_rerouting: ["Reroute buses to parallel street."]
+          }
         },
       };
     }
@@ -172,6 +177,7 @@ export async function createEvent(stateOrFormData, formData) {
         officers: predictionData.resources.officers,
         barricades: predictionData.resources.barricades,
         towVehicles: predictionData.resources.tow_vehicles,
+        diversionStrategy: predictionData.resources.diversion_strategy || null,
       },
     });
 

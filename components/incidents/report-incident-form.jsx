@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AlertTriangle, Camera, MapPin, ShieldAlert } from "lucide-react";
 
 import { SectionHeader } from "@/components/shared/section-header";
+import { submitReportAction } from "@/actions/reports";
 
 import { Button } from "@/components/ui/button";
 
@@ -54,6 +55,8 @@ image: null,
 });
 
 const [submitted, setSubmitted] = useState(null);
+const [isPending, setIsPending] = useState(false);
+const [error, setError] = useState(null);
 
 function updateField(field, value) {
 setFormData((current) => ({
@@ -64,14 +67,29 @@ setFormData((current) => ({
 
 function handleSubmit(event) {
 event.preventDefault();
+setIsPending(true);
+setError(null);
 
-setSubmitted({
-  source: "Citizen",
-  status: "Pending Verification",
-  ...formData,
-  reportedAt: new Date().toISOString(),
-});
-
+submitReportAction(formData)
+  .then((res) => {
+    if (res.success) {
+      setSubmitted({
+        source: "Citizen",
+        status: "Pending Verification",
+        ...formData,
+        reportedAt: new Date().toISOString(),
+      });
+    } else {
+      setError(res.error || "Failed to submit report.");
+    }
+  })
+  .catch((err) => {
+    console.error(err);
+    setError("An unexpected error occurred during submission.");
+  })
+  .finally(() => {
+    setIsPending(false);
+  });
 }
 
 return ( 
@@ -97,6 +115,11 @@ return (
           onSubmit={handleSubmit}
           className="space-y-4"
         >
+          {error && (
+            <div className="rounded-xl border border-red-500/20 bg-red-950/20 p-3 text-sm text-red-400">
+              {error}
+            </div>
+          )}
           <div className="space-y-2">
             <label className="text-sm font-medium">
               Incident Type

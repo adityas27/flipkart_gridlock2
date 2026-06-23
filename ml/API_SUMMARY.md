@@ -188,7 +188,7 @@ Request → Location Enrichment → Feature Extraction → ML Prediction
 - **CatBoost**: ML model for severity prediction
 - **Scikit-learn**: BallTree for spatial queries
 - **Shapely**: Polygon containment for zones
-- **Google GenAI**: Gemini LLM for resource reasoning
+- **Google GenAI**: New Gemini API for LLM reasoning
 - **Pandas/NumPy**: Data processing
 - **Pydantic**: Request/response validation
 

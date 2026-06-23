@@ -146,7 +146,7 @@ def recommend_resources_llm(
     try:
         # Call Gemini API
         response = genai_client.models.generate_content(
-            model="gemma-2-9b-it",
+            model="gemma-4-26b-a4b-it",
             contents=prompt
         )
         

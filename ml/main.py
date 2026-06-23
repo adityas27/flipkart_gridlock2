@@ -30,6 +30,10 @@ genai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 app = FastAPI(title="Event Intelligence API", lifespan=lifespan)
 
+@app.get("/health", status_code=status.HTTP_200_OK)
+async def health_check():
+    return {"status": "healthy"}
+
 @app.post("/predict", response_model=PredictionResponse)
 def predict(payload: EventPredictionRequest):
     lat, lon = float(payload.latitude), float(payload.longitude)

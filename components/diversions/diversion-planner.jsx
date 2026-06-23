@@ -69,7 +69,8 @@ export function DiversionPlanner() {
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {routes.map((route) => (
+        {routes.length > 0 ? (
+          routes.map((route) => (
           <Card
             key={route.id}
             className={
@@ -103,11 +104,6 @@ export function DiversionPlanner() {
                 />
 
                 <Info
-                  label="Distance"
-                  value={route.distance}
-                />
-
-                <Info
                   label="Zone"
                   value={route.zone}
                 />
@@ -118,7 +114,7 @@ export function DiversionPlanner() {
                 />
               </div>
 
-              <Button
+              {/* <Button
                 variant={
                   route.rank === 1
                     ? "default"
@@ -130,10 +126,19 @@ export function DiversionPlanner() {
                 }
               >
                 View route details
-              </Button>
+              </Button> */}
             </CardContent>
           </Card>
-        ))}
+          ))
+        ) : (
+          <Card className="lg:col-span-3">
+            <CardContent className="pt-6">
+              <div className="rounded-2xl border border-white/10 bg-white/2 p-8 text-center text-slate-400">
+                add data here
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Card>
@@ -149,7 +154,8 @@ export function DiversionPlanner() {
         </CardHeader>
 
         <CardContent className="space-y-3">
-          {routes.map((route) => (
+          {routes.length > 0 ? (
+            routes.map((route) => (
             <div
               key={route.id}
               className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/2 p-4 md:flex-row md:items-center md:justify-between"
@@ -179,7 +185,12 @@ export function DiversionPlanner() {
                 </Button>
               </div>
             </div>
-          ))}
+            ))
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-white/2 p-8 text-center text-slate-400">
+              add data here
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -210,13 +221,6 @@ export function DiversionPlanner() {
                   label="Estimated Delay Reduction"
                   value={
                     selectedRoute.delayReduction
-                  }
-                />
-
-                <InfoCard
-                  label="Route Distance"
-                  value={
-                    selectedRoute.distance
                   }
                 />
 

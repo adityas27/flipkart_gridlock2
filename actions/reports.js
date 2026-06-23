@@ -7,27 +7,39 @@ export async function submitReportAction(formData) {
   try {
     const { userId } = await auth();
 
-    const incidentType = formData.incidentType || "Other";
+    const name = formData.eventName || "Untitled Incident";
+    const type = formData.eventType || "Other";
+    const cause = formData.eventCause || "";
+    const crowdSize = Number(formData.crowdSize || 0);
     const location = formData.location || "Unknown Location";
-    const description = formData.description || "";
-    const estimatedPeople = Number(formData.estimatedPeople || 0);
-    const affectedLanes = Number(formData.blockedLanes || 1);
-    const roadClosed = Boolean(formData.roadClosed);
+    const startTime = formData.startTime || new Date().toISOString();
+    const endTime = formData.endTime || new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+    const photoUrl = formData.photoUrl || null;
+    const latitude = formData.latitude ? Number(formData.latitude) : null;
+    const longitude = formData.longitude ? Number(formData.longitude) : null;
 
-    const title = `${incidentType} at ${location}`;
+    const descriptionPayload = JSON.stringify({
+      cause,
+      type,
+      startTime,
+      endTime,
+      latitude,
+      longitude,
+    });
 
     const report = await db.incidentReport.create({
       data: {
-        title,
+        title: name,
         status: "Pending Verification",
         severity: "Moderate",
         location,
-        affectedLanes,
+        affectedLanes: 1,
         progress: 1,
-        description,
-        estimatedPeople,
-        roadClosed,
+        description: descriptionPayload,
+        estimatedPeople: crowdSize,
+        roadClosed: false,
         clerkId: userId || null,
+        photoUrl,
       },
     });
 
@@ -45,6 +57,7 @@ export async function submitReportAction(formData) {
         description: report.description,
         estimatedPeople: report.estimatedPeople,
         roadClosed: report.roadClosed,
+        photoUrl: report.photoUrl,
       },
     };
   } catch (error) {
@@ -79,6 +92,7 @@ export async function getReportsAction() {
       description: report.description,
       estimatedPeople: report.estimatedPeople,
       roadClosed: report.roadClosed,
+      photoUrl: report.photoUrl,
     }));
   } catch (error) {
     console.error("Error fetching reports from database:", error);
@@ -104,6 +118,7 @@ export async function getPendingReportsAction() {
       description: report.description,
       estimatedPeople: report.estimatedPeople,
       roadClosed: report.roadClosed,
+      photoUrl: report.photoUrl,
     }));
   } catch (error) {
     console.error("Error fetching pending reports:", error);
@@ -157,18 +172,52 @@ export async function verifyIncidentAction(incidentId) {
 
     if (!incident) throw new Error("Incident not found");
 
-    const coords = getCoordinatesForLocation(incident.location);
+    let coords = getCoordinatesForLocation(incident.location);
     const zoneName = getZoneForLocation(incident.location);
+
+    let eventType = "OTHER";
+    let eventCause = incident.description || incident.title;
+    let startTime = new Date();
+    let endTime = new Date(Date.now() + 2 * 60 * 60 * 1000);
+
+    try {
+      if (incident.description && incident.description.startsWith("{")) {
+        const parsed = JSON.parse(incident.description);
+        if (parsed.type) {
+          const typeUpper = parsed.type.toUpperCase();
+          if (["FESTIVAL", "CONCERT", "SPORTS", "POLITICAL", "RELIGIOUS", "CORPORATE", "EDUCATIONAL", "OTHER"].includes(typeUpper)) {
+            eventType = typeUpper;
+          }
+        }
+        if (parsed.cause) {
+          eventCause = parsed.cause;
+        }
+        if (parsed.startTime) {
+          startTime = new Date(parsed.startTime);
+        }
+        if (parsed.endTime) {
+          endTime = new Date(parsed.endTime);
+        }
+        if (parsed.latitude && parsed.longitude) {
+          coords = {
+            latitude: Number(parsed.latitude),
+            longitude: Number(parsed.longitude)
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("Could not parse incident description JSON:", e);
+    }
 
     // 1. Promote to Event
     const event = await db.event.create({
       data: {
         eventName: incident.title,
-        eventType: "OTHER",
-        eventCause: incident.description || incident.title,
+        eventType,
+        eventCause,
         status: "ONGOING",
-        startTime: new Date(),
-        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // Default 2 hours duration
+        startTime,
+        endTime,
         location: incident.location,
         latitude: coords.latitude,
         longitude: coords.longitude,
@@ -178,13 +227,13 @@ export async function verifyIncidentAction(incidentId) {
     // 2. Run ML Prediction
     const { generatePrediction } = await import("@/services/predictions");
     const predictionData = await generatePrediction({
-      eventType: incident.title.split(" ")[0] || "Other",
-      eventCause: incident.description || incident.title,
+      eventType: eventType,
+      eventCause: eventCause,
       latitude: coords.latitude,
       longitude: coords.longitude,
       zone: zoneName,
       roadClosure: incident.roadClosed ? "Yes" : "None",
-      duration: 2,
+      duration: Math.max(1, Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60))),
       crowdSize: incident.estimatedPeople,
     });
 
@@ -224,6 +273,18 @@ export async function verifyIncidentAction(incidentId) {
     return { success: true };
   } catch (error) {
     console.error("Error verifying incident:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteIncidentAction(incidentId) {
+  try {
+    await db.incidentReport.delete({
+      where: { id: incidentId }
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting incident:", error);
     return { success: false, error: error.message };
   }
 }

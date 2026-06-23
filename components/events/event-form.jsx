@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { startTransition, useActionState, useState } from "react";
+import dynamic from "next/dynamic";
 
 import { EVENT_STATUSES, EVENT_TYPES } from "@/types";
 import { getDurationHours } from "@/lib/utils";
@@ -29,10 +30,42 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Import Leaflet location picker dynamically with ssr disabled
+const LocationPickerMap = dynamic(() => import("@/components/map/location-picker-map"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-72 w-full animate-pulse rounded-2xl bg-white/5 border border-[#343A40] flex items-center justify-center text-slate-500 text-xs">
+      Loading Interactive Map...
+    </div>
+  ),
+});
+
+const EVENT_CAUSES = {
+  "Vehicle Breakdown": "vehicle_breakdown",
+  "Others": "others",
+  "Tree Fall": "tree_fall",
+  "Accident": "accident",
+  "Public Event": "public_event",
+  "Water Logging": "water_logging",
+  "Pot Holes": "pot_holes",
+  "Congestion": "congestion",
+  "Construction": "construction",
+  "Road Conditions": "road_conditions",
+  "VIP Movement": "vip_movement",
+  "Procession": "procession",
+  "Protest": "protest",
+  "Debris": "Debris",
+  "Fog / Low Visibility": "Fog / Low Visibility"
+};
+
+const getCauseLabel = (value) => {
+  return Object.keys(EVENT_CAUSES).find(key => EVENT_CAUSES[key] === value) || value;
+};
+
 const defaultState = {
   name: "",
   type: "Festival",
-  cause: "",
+  cause: "vehicle_breakdown",
   crowdSize: 0,
   location: "",
   latitude: "12.9716",
@@ -72,6 +105,47 @@ export function EventForm({
       formAction(formData);
     });
   }
+
+  // Synchronize coordinates and address name from interactive map
+  const handleLocationMapChange = (lat, lon, addressName) => {
+    setFormState((current) => ({
+      ...current,
+      latitude: String(lat),
+      longitude: String(lon),
+      location: addressName,
+    }));
+  };
+
+  // Geocode address when user types location name and blurs input
+  const handleLocationBlur = async () => {
+    const query = formState.location.trim();
+    if (!query) return;
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          query
+        )}&limit=1`,
+        {
+          headers: {
+            "User-Agent": "FlipkartGridlockApp/1.0",
+          },
+        }
+      );
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        setFormState((current) => ({
+          ...current,
+          latitude: String(lat),
+          longitude: String(lon),
+        }));
+      }
+    } catch (err) {
+      console.error("Geocoding on blur failed in EventForm:", err);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -156,17 +230,27 @@ export function EventForm({
               </Field>
 
               <Field label="Event Cause">
-                <Input
-                  name="eventCause"
-                  value={formState.cause}
-                  onChange={(event) =>
-                    updateField(
-                      "cause",
-                      event.target.value
-                    )
+                <Select
+                  value={formState.cause || "vehicle_breakdown"}
+                  onValueChange={(value) =>
+                    updateField("cause", value)
                   }
-                  required
-                />
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select event cause" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    {Object.entries(EVENT_CAUSES).map(([label, val]) => (
+                      <SelectItem
+                        key={val}
+                        value={val}
+                      >
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <input type="hidden" name="eventCause" value={formState.cause} />
               </Field>
 
               <Field label="Crowd Size">
@@ -198,6 +282,7 @@ export function EventForm({
                       event.target.value
                     )
                   }
+                  onBlur={handleLocationBlur}
                   required
                 />
               </Field>
@@ -227,6 +312,20 @@ export function EventForm({
                   }
                 />
               </Field>
+
+              {/* Interactive Location Picker Map */}
+              <div className="md:col-span-2 space-y-2">
+                <label className="text-sm font-medium text-slate-300">Interactive Location Picker Map</label>
+                <p className="text-xs text-slate-500">
+                  Search for an address above or click/drag the marker on the map to set the exact coordinates and resolve the address name.
+                </p>
+                <LocationPickerMap
+                  latitude={Number(formState.latitude || 12.9716)}
+                  longitude={Number(formState.longitude || 77.5946)}
+                  onLocationChange={handleLocationMapChange}
+                  className="h-72 w-full"
+                />
+              </div>
 
               <Field label="Start Time">
                 <Input
@@ -328,7 +427,7 @@ export function EventForm({
               </PreviewRow>
 
               <PreviewRow label="Cause">
-                {formState.cause || "Pending"}
+                {getCauseLabel(formState.cause) || "Pending"}
               </PreviewRow>
 
               <PreviewRow label="Duration">

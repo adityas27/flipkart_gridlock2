@@ -15,7 +15,7 @@ import {
 } from "@/types";
 
 import { queryEvents } from "@/services/events";
-import { getPendingReportsAction, verifyIncidentAction } from "@/actions/reports";
+import { getPendingReportsAction, verifyIncidentAction, deleteIncidentAction } from "@/actions/reports";
 import {
   formatDateTime,
   formatNumber,
@@ -60,6 +60,7 @@ export function EventList() {
 
   const [pendingReports, setPendingReports] = useState([]);
   const [verifyingId, setVerifyingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const deferredSearch =
     useDeferredValue(search);
@@ -134,6 +135,14 @@ export function EventList() {
     });
     setResult(res ?? result);
     setVerifyingId(null);
+  }
+
+  async function handleDelete(id) {
+    setDeletingId(id);
+    await deleteIncidentAction(id);
+    const newPending = await getPendingReportsAction();
+    setPendingReports(newPending);
+    setDeletingId(null);
   }
 
   return (
@@ -229,13 +238,22 @@ export function EventList() {
                     <span>{formatDateTime(report.submittedAt)}</span>
                   </div>
                 </div>
-                <Button 
-                  onClick={() => handleVerify(report.id)} 
-                  disabled={verifyingId === report.id}
-                  className="bg-amber-600 hover:bg-amber-700 text-white"
-                >
-                  {verifyingId === report.id ? "Verifying..." : "Verify & Assess"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    onClick={() => handleVerify(report.id)} 
+                    disabled={verifyingId === report.id || deletingId === report.id}
+                    className="bg-amber-600 hover:bg-amber-700 text-white"
+                  >
+                    {verifyingId === report.id ? "Verifying..." : "Verify & Assess"}
+                  </Button>
+                  <Button 
+                    onClick={() => handleDelete(report.id)} 
+                    disabled={verifyingId === report.id || deletingId === report.id}
+                    variant="destructive"
+                  >
+                    {deletingId === report.id ? "Deleting..." : "Delete"}
+                  </Button>
+                </div>
               </div>
             ))}
           </CardContent>

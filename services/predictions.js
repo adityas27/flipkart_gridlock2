@@ -1,7 +1,5 @@
 'use server';
 
-import { samplePrediction } from "@/mock-data/predictions";
-
 const ZONE_COORDS = {
   Central: { latitude: 12.9721, longitude: 77.5933 },
   East: { latitude: 12.9807, longitude: 77.6161 },
@@ -98,6 +96,6 @@ export async function generatePrediction(formData) {
     delayMinutes: Math.max(8, Math.round(score * 0.42)),
     impactRadius: `${(score / 24).toFixed(1)} km`,
     confidenceScore: `${Math.min(97, score + 5)}%`,
-    explanation: Array.isArray(samplePrediction.explanation) ? samplePrediction.explanation : [],
+    explanation: ["add data here"],
   };
 }

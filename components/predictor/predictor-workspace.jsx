@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-import { predictorDefaults, samplePrediction } from "@/mock-data/predictions";
 import { generatePredictionAction } from "@/actions/predictor";
 import { EVENT_TYPES } from "@/types";
 
@@ -47,25 +46,23 @@ const closures = [
 
 export function PredictorWorkspace() {
   const [formData, setFormData] =
-    useState(predictorDefaults);
+    useState({
+      eventType: "",
+      eventCause: "",
+      crowdSize: 0,
+      duration: 0,
+      zone: "Central",
+      location: "Central Avenue",
+      roadClosure: "None",
+    });
 
-  const [prediction, setPrediction] =
-    useState(samplePrediction);
+  const [prediction, setPrediction] = useState(null);
 
   const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
-    setIsPending(true);
-    generatePredictionAction(predictorDefaults)
-      .then((res) => {
-        setPrediction(res);
-      })
-      .catch((err) => {
-        console.error(err);
-      })
-      .finally(() => {
-        setIsPending(false);
-      });
+    // Initialize without calling prediction on mount
+    // Users can generate predictions after providing data
   }, []);
 
   function updateField(field, value) {
@@ -266,91 +263,96 @@ export function PredictorWorkspace() {
         </Card>
 
         <div className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <ResultCard
-              label="Congestion Score"
-              value={
-                prediction.congestionScore
-              }
-            />
-
-            <ResultCard
-              label="Severity"
-              value={
-                <StatusBadge
-                  status={
-                    prediction.severity
+          {prediction ? (
+            <>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                <ResultCard
+                  label="Congestion Score"
+                  value={
+                    prediction.congestionScore
                   }
                 />
-              }
-            />
 
-            <ResultCard
-              label="Delay Minutes"
-              value={
-                prediction.delayMinutes
-              }
-            />
+                <ResultCard
+                  label="Severity"
+                  value={
+                    <StatusBadge
+                      status={
+                        prediction.severity
+                      }
+                    />
+                  }
+                />
 
-            <ResultCard
-              label="Impact Radius"
-              value={
-                prediction.impactRadius
-              }
-            />
+                <ResultCard
+                  label="Delay Minutes"
+                  value={
+                    prediction.delayMinutes
+                  }
+                />
 
-            <ResultCard
-              label="Confidence"
-              value={
-                prediction.confidenceScore
-              }
-            />
-          </div>
+                <ResultCard
+                  label="Impact Radius"
+                  value={
+                    prediction.impactRadius
+                  }
+                />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                Prediction Explanation
-              </CardTitle>
+                <ResultCard
+                  label="Confidence"
+                  value={
+                    prediction.confidenceScore
+                  }
+                />
+              </div>
 
-              <CardDescription>
-                Mock reasoning that will
-                later be backed by actual
-                model outputs.
-              </CardDescription>
-            </CardHeader>
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    Prediction Explanation
+                  </CardTitle>
 
-            <CardContent className="space-y-3">
-              {prediction.explanation.map(
-                (item) => (
-                  <div
-                    key={item}
-                    className="rounded-2xl border border-white/10 bg-white/2 p-4 text-sm leading-6 text-slate-300"
-                  >
-                    {item}
-                  </div>
-                )
-              )}
-            </CardContent>
-          </Card>
+                  <CardDescription>
+                    Model reasoning and impact analysis.
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="space-y-3">
+                  {prediction.explanation.map(
+                    (item) => (
+                      <div
+                        key={item}
+                        className="rounded-2xl border border-white/10 bg-white/2 p-4 text-sm leading-6 text-slate-300"
+                      >
+                        {item}
+                      </div>
+                    )
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Prediction Results
+                </CardTitle>
+
+                <CardDescription>
+                  Fill in the form and click "Generate prediction" to see results.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent>
+                <div className="rounded-2xl border border-white/10 bg-white/2 p-8 text-center text-slate-400">
+                  add data here
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
-  );
-}
-
-function Field({
-  label,
-  children,
-}) {
-  return (
-    <label className="space-y-2">
-      <span className="text-sm font-medium text-slate-300">
-        {label}
-      </span>
-
-      {children}
-    </label>
   );
 }
 
@@ -372,5 +374,16 @@ function ResultCard({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <div className="grid gap-2">
+      <label className="text-sm font-medium text-slate-200">
+        {label}
+      </label>
+      {children}
+    </div>
   );
 }

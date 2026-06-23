@@ -535,7 +535,7 @@ CRITICAL: 75-100
 ```
 
 ### LLM Integration
-- **Model**: Gemini gemma-3-4b-it
+- **Model**: Gemini gemma-2-9b-it (via new google-genai SDK)
 - **Prompt**: Structured with rules + context
 - **Output**: JSON with allocation + reasoning
 - **Fallback**: Default structure on parse failure

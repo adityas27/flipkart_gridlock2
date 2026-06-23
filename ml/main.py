@@ -10,7 +10,7 @@ from services.features import create_feature_row
 from services.resources import recommend_resources_llm
 from services.scoring import compute_risk_score, get_risk_category
 from services.location import get_location_info
-import google.generativeai as genai
+from google import genai
 
 resources = {}
 
@@ -25,14 +25,10 @@ async def lifespan(app: FastAPI):
     yield
     resources.clear()
 
-genai.configure(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+# Initialize GenAI client with new API
+genai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 app = FastAPI(title="Event Intelligence API", lifespan=lifespan)
-gemma_model = genai.GenerativeModel(
-    "gemma-4-26b-a4b-it"
-)
 
 @app.post("/predict", response_model=PredictionResponse)
 def predict(payload: EventPredictionRequest):
@@ -102,7 +98,7 @@ def predict(payload: EventPredictionRequest):
 
     # Get resource recommendations from LLM
     rec_resources = recommend_resources_llm(
-        gemma_model=gemma_model,
+        genai_client=genai_client,
         event_details=event_details,
         prediction_details=prediction_details,
         resource_dict=resource_dict,

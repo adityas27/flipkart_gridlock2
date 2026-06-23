@@ -70,7 +70,7 @@ resource_dict: dict
     """
 
 def recommend_resources_llm(
-gemma_model,
+genai_client,
 event_details: dict,
 prediction_details: dict,
 resource_dict: dict
@@ -81,13 +81,15 @@ resource_dict: dict
     resource_dict=resource_dict
     )
 
-    response = gemma_model.generate_content(prompt)
-
     try:
+        response = genai_client.models.generate_content(
+            model="gemma-4-26b-a4b-it",
+            contents=prompt
+        )
         return json.loads(response.text)
 
-    except Exception:
-
+    except Exception as e:
+        print(f"LLM Error: {e}")
         return {
             "allocation_priority": prediction_details.get(
                 "risk_category",
@@ -111,7 +113,7 @@ resource_dict: dict
             },
 
             "reasoning": [
-                "Failed to parse LLM response."
+                f"Failed to get LLM response: {str(e)}"
             ]
         }
 

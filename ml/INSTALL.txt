@@ -1,0 +1,134 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                    INSTALLATION GUIDE - EVENT INTELLIGENCE API             ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 📦 STEP 1: INSTALL DEPENDENCIES                                           │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  cd ml                                                                     │
+│  pip install -r requirements.txt                                          │
+│                                                                            │
+│  If you have the OLD google-generativeai package:                         │
+│  pip uninstall google-generativeai                                        │
+│  pip install google-genai                                                 │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 🔑 STEP 2: CONFIGURE ENVIRONMENT                                          │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  Create .env file in ml/ directory:                                       │
+│                                                                            │
+│  GEMINI_API_KEY=your_gemini_api_key_here                                  │
+│  API=your_tomtom_api_key_here                                             │
+│                                                                            │
+│  Get Gemini API Key:                                                      │
+│  → https://aistudio.google.com/apikey                                     │
+│                                                                            │
+│  Get TomTom API Key:                                                      │
+│  → https://developer.tomtom.com/                                          │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ ✅ STEP 3: VERIFY REQUIRED FILES                                          │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  Check these files exist in ml/ directory:                                │
+│                                                                            │
+│  ✓ severity_model.cbm                                                     │
+│  ✓ features.pkl                                                           │
+│  ✓ hotspot_scores.pkl                                                     │
+│  ✓ junction_rank.pkl                                                      │
+│  ✓ data/junctions.csv                                                     │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 🚀 STEP 4: START THE SERVER                                               │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  Development Mode:                                                         │
+│  uvicorn main:app --reload --port 8000                                    │
+│                                                                            │
+│  Production Mode:                                                          │
+│  uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4                 │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 🧪 STEP 5: TEST THE API                                                   │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  1. Open Swagger UI:                                                       │
+│     http://localhost:8000/docs                                            │
+│                                                                            │
+│  2. Test location endpoint:                                                │
+│     curl "http://localhost:8000/location-info?latitude=12.97&longitude=77.59" │
+│                                                                            │
+│  3. Test prediction endpoint:                                              │
+│     curl -X POST "http://localhost:8000/predict" \                        │
+│       -H "Content-Type: application/json" \                               │
+│       -d '{                                                                │
+│         "event_type": "Accident",                                          │
+│         "event_cause": "Collision",                                        │
+│         "latitude": 12.9716,                                               │
+│         "longitude": 77.5946,                                              │
+│         "requires_road_closure": true,                                     │
+│         "event_datetime": "2024-03-15T14:30:00"                            │
+│       }'                                                                   │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 🐛 TROUBLESHOOTING                                                         │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  Problem: "ValueError: Input contains NaN"                                │
+│  Solution: Already fixed in location.py with dropna()                     │
+│                                                                            │
+│  Problem: "Module not found: google.genai"                                │
+│  Solution: pip install google-genai                                       │
+│                                                                            │
+│  Problem: "Invalid API key"                                               │
+│  Solution: Check .env file has correct GEMINI_API_KEY                     │
+│                                                                            │
+│  Problem: "Model files not found"                                         │
+│  Solution: Ensure all .pkl and .cbm files are in ml/ directory           │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 📚 DOCUMENTATION                                                           │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  • README.md                    - Getting started                         │
+│  • API_SUMMARY.md               - Complete API docs                       │
+│  • SETUP.md                     - Detailed setup guide                    │
+│  • QUICK_REFERENCE.md           - Quick commands                          │
+│  • SYSTEM_SUMMARY.md            - Technical overview                      │
+│  • INTEGRATION_CHECKLIST.md     - Integration status                      │
+│  • CHANGELOG.md                 - Version history                         │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ ⚠️  IMPORTANT NOTES                                                        │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                            │
+│  1. NEW GenAI API: Using google-genai (not google-generativeai)          │
+│  2. Model: gemma-2-9b-it (not gemma-3-4b-it)                             │
+│  3. Coordinates: Must be in Bangalore region (12.8-13.2, 77.4-77.8)      │
+│  4. Timestamps: Use ISO 8601 format (YYYY-MM-DDTHH:MM:SS)                │
+│  5. Never commit .env file to git                                         │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                          INSTALLATION COMPLETE ✅                          ║
+║                                                                            ║
+║  Your Event Intelligence API is ready to use!                             ║
+║  Visit http://localhost:8000/docs for interactive documentation.          ║
+╚════════════════════════════════════════════════════════════════════════════╝

@@ -4,7 +4,7 @@ import { getEventById } from "@/services/events";
 
 export default async function EditEventPage({ params }) {
   const { eventId } = await params;
-  const event = getEventById(eventId);
+  const event = await getEventById(eventId);
 
   if (!event) {
     notFound();

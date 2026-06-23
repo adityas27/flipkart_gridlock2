@@ -26,7 +26,11 @@ def build_resource_allocation_prompt(
     4. Return ONLY valid JSON without markdown formatting.
     5. Resource counts must be integers.
     6. If resources are insufficient, report resource_gap.
-    7. Keep reasoning concise.
+    7. Generate a diversion_strategy including:
+       - barricade_placements: Where to place barricades.
+       - emergency_corridors: Instructions for ambulances.
+       - transit_rerouting: Instructions for public transit.
+    8. Keep reasoning concise.
 
     EVENT:
     {json.dumps(event_details, indent=2)}
@@ -55,6 +59,12 @@ def build_resource_allocation_prompt(
             "tow_vehicles": 0,
             "ambulances": 0
         }},
+
+    "diversion_strategy": {{
+        "barricade_placements": [""],
+        "emergency_corridors": [""],
+        "transit_rerouting": [""]
+    }},
         "reasoning": ["reason 1", "reason 2"]
     }}
     """
@@ -235,6 +245,13 @@ def recommend_resources_llm(
                 "tow_vehicles": 0,
                 "ambulances": 0
             },
+            
+            "diversion_strategy": {
+                "barricade_placements": [],
+                "emergency_corridors": [],
+                "transit_rerouting": []
+            },
+
             "reasoning": [
                 f"Failed to get LLM response: {str(e)}"
             ]

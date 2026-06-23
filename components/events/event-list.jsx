@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -15,6 +15,7 @@ import {
 } from "@/types";
 
 import { queryEvents } from "@/services/events";
+import { getPendingReportsAction, verifyIncidentAction } from "@/actions/reports";
 import {
   formatDateTime,
   formatNumber,
@@ -49,25 +50,59 @@ export function EventList() {
   const [status, setStatus] = useState("All");
   const [page, setPage] = useState(1);
 
+  const [result, setResult] = useState({
+    items: [],
+    total: 0,
+    page: 1,
+    pageSize: 5,
+    totalPages: 1,
+  });
+
+  const [pendingReports, setPendingReports] = useState([]);
+  const [verifyingId, setVerifyingId] = useState(null);
+
   const deferredSearch =
     useDeferredValue(search);
 
-  const result = useMemo(
-    () =>
-      queryEvents({
-        search: deferredSearch,
-        type,
-        status,
-        page,
-        pageSize: 5,
-      }),
-    [
-      deferredSearch,
-      type,
-      status,
-      page,
-    ]
-  );
+  useEffect(() => {
+    let active = true;
+    async function loadData() {
+      try {
+        const res = await queryEvents({
+          search: deferredSearch,
+          type,
+          status,
+          page,
+          pageSize: 5,
+        });
+        if (active) {
+          setResult(res ?? {
+            items: [],
+            total: 0,
+            page: 1,
+            pageSize: 5,
+            totalPages: 1,
+          });
+        }
+        
+        const pendingRes = await getPendingReportsAction();
+        if (active) {
+          setPendingReports(pendingRes);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    loadData();
+    return () => {
+      active = false;
+    };
+  }, [
+    deferredSearch,
+    type,
+    status,
+    page,
+  ]);
 
   function updateSearch(value) {
     setSearch(value);
@@ -82,6 +117,23 @@ export function EventList() {
   function updateStatus(value) {
     setStatus(value);
     setPage(1);
+  }
+
+  async function handleVerify(id) {
+    setVerifyingId(id);
+    await verifyIncidentAction(id);
+    const newPending = await getPendingReportsAction();
+    setPendingReports(newPending);
+    // Reload events to show the newly created event
+    const res = await queryEvents({
+      search: search,
+      type,
+      status,
+      page,
+      pageSize: 5,
+    });
+    setResult(res ?? result);
+    setVerifyingId(null);
   }
 
   return (
@@ -156,6 +208,39 @@ export function EventList() {
           </>
         }
       />
+
+      {pendingReports.length > 0 && (
+        <Card className="border-amber-500/50 bg-amber-500/5">
+          <CardHeader>
+            <CardTitle className="text-amber-500">Pending Citizen Reports</CardTitle>
+            <CardDescription>
+              These incident reports require commander verification to generate ML assessments and diversion routes.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {pendingReports.map(report => (
+              <div key={report.id} className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+                <div>
+                  <h4 className="font-medium text-white">{report.title}</h4>
+                  <p className="text-sm text-slate-400">{report.description}</p>
+                  <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
+                    <span>{report.location}</span>
+                    <span>&bull;</span>
+                    <span>{formatDateTime(report.submittedAt)}</span>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => handleVerify(report.id)} 
+                  disabled={verifyingId === report.id}
+                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                >
+                  {verifyingId === report.id ? "Verifying..." : "Verify & Assess"}
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader className="flex-row items-end justify-between">

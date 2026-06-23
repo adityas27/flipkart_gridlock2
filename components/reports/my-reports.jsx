@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   MapPin,
@@ -9,7 +9,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-import { citizenReports } from "@/mock-data/reports";
+import { getReportsAction } from "@/actions/reports";
 
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -44,9 +44,28 @@ const STEPS = [
 export function MyReports() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
+  const [dbReports, setDbReports] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    async function loadReports() {
+      try {
+        const data = await getReportsAction();
+        if (active) {
+          setDbReports(data ?? []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    loadReports();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const reports = useMemo(() => {
-    return citizenReports.filter((report) => {
+    return dbReports.filter((report) => {
       const matchesSearch =
         report.title
           .toLowerCase()
@@ -60,17 +79,17 @@ export function MyReports() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [search, status]);
+  }, [search, status, dbReports]);
 
   const stats = {
-    total: citizenReports.length,
-    pending: citizenReports.filter(
+    total: dbReports.length,
+    pending: dbReports.filter(
       (r) => r.status === "Pending Verification"
     ).length,
-    active: citizenReports.filter(
+    active: dbReports.filter(
       (r) => r.status === "Active"
     ).length,
-    resolved: citizenReports.filter(
+    resolved: dbReports.filter(
       (r) => r.status === "Resolved"
     ).length,
   };

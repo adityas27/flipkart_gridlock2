@@ -47,4 +47,5 @@ next-env.d.ts
 
 ## ML folder
 __pycache__
+venv/
 ml/data.csv
